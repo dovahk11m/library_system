@@ -43,13 +43,13 @@ public class StudentDAO {
             while (rs.next()) {
 
                 //객체를 먼저 생성해두고 값을 할당하는 코드
-                Student studentDto = new Student();
+                Student studentDTO = new Student();
 
-                studentDto.setId(rs.getInt("id"));
-                studentDto.setName(rs.getString("name"));
-                studentDto.setStudent_id(rs.getString("student_id"));
+                studentDTO.setId(rs.getInt("id"));
+                studentDTO.setName(rs.getString("name"));
+                studentDTO.setStudent_id(rs.getString("student_id"));
 
-                studentList.add(studentDto);
+                studentList.add(studentDTO);
             }
         }
 
