@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- 5.19
+ * 5.19
  */
 public class StudentDAO {
 
@@ -17,14 +17,14 @@ public class StudentDAO {
 
     public void addStudent(Student student) throws SQLException {
         //쿼리문 TODO
-        String sql = "insert into Students (name, student_id)" +
+        String sql = "insert into Students (name, student_id) " +
                 "values (?, ?) ";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement psmt = conn.prepareStatement(sql)){
+             PreparedStatement psmt = conn.prepareStatement(sql)) {
 
-            psmt.setString(1,student.getName());
-            psmt.setString(2,student.getStudent_id());
+            psmt.setString(1, student.getName());
+            psmt.setString(2, student.getStudent_id());
 
             psmt.executeUpdate();
         }
@@ -36,18 +36,27 @@ public class StudentDAO {
 
         String sql = "select*from students";
 
-        try(Connection conn = DatabaseUtil.getConnection();
-            PreparedStatement psmt = conn.prepareStatement(sql)){
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement psmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = psmt.executeQuery(sql);
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String studentId = rs.getString("student_id");
+//                int id = rs.getInt("id");
+//                String name = rs.getString("name");
+//                String studentId = rs.getString("student_id");
 
-                Student student = new Student(id, name, studentId);
-                studentList.add(student);
+//                Student student = new Student(id, name, studentId);
+//                studentList.add(student);
+
+                //객체를 먼저 생성해두고 값을 할당하는 코드
+                Student studentDto = new Student();
+
+                studentDto.setId(rs.getInt("id"));
+                studentDto.setName(rs.getString("name"));
+                studentDto.setStudent_id(rs.getString("student_id"));
+
+                studentList.add(studentDto);
             }
         }
 
@@ -55,20 +64,40 @@ public class StudentDAO {
     }//getAllStudent
 
     //학생 학번 (student_id) 조회 - 로그인
-    public Student authenticateStudent(String studentId) throws SQLException {
+    public Student authenticateStudent(String searchStudId) throws SQLException {
 
         List<Student> sList = new ArrayList<>();
         String sql = "select*from students where student_id = ?";
 
-        try(Connection conn = DatabaseUtil.getConnection();
-        PreparedStatement psmt = conn.prepareStatement(sql)){
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement psmt = conn.prepareStatement(sql)) {
 
-            psmt.setString(1, studentId);
+            psmt.setString(1, searchStudId);
             ResultSet rs = psmt.executeQuery();
-        }
+
+//            while (rs.next()) {//다중행이라면 무조건 while
+//                Student studentDTO = new Student();
+//
+//                studentDTO.setId(rs.getInt("id"));
+//                studentDTO.setName(rs.getString("name"));
+//                studentDTO.setStudent_id(rs.getString("student_id"));
+//
+//                return studentDTO;
+//            }
+
+            if (rs.next()) { //어차피 단일문이라 굳이 while이 아니어도 된다.
+                Student studentDTO = new Student();
+
+                studentDTO.setId(rs.getInt("id"));
+                studentDTO.setName(rs.getString("name"));
+                studentDTO.setStudent_id(rs.getString("student_id"));
+
+                return studentDTO;
+            }
+
+        }//authenticateStudent
 
         //정확한 학번 입력시 Student 객체 생성 리턴
-
 
         //잘못된 학번 입력시 null 반환
         return null;
@@ -77,18 +106,29 @@ public class StudentDAO {
     public static void main(String[] args) {
 
         //전체 조회 테스트
-        StudentDAO sdao = new StudentDAO();
-        try {
-            sdao.getAllStudents();
-            //ArrayList<Book> sBookList = (ArrayList) bookDAO.searchBooksTitle("자바");
+//        StudentDAO sdao = new StudentDAO();
+//        try {
+//            sdao.getAllStudents();
+//
+//            for (int i = 0; i < sdao.getAllStudents().size(); i++) {
+//                System.out.println(sdao.getAllStudents().get(i));
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
 
-            for (int i = 0; i < sdao.getAllStudents().size(); i++) {
-                System.out.println(sdao.getAllStudents().get(i));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        StudentDAO sdao = new StudentDAO();
+//        try {
+//            ArrayList<Student> sList = (ArrayList) sdao.authenticateStudent("12341234");
+//
+//            for (int i = 0; i < sdao.getAllStudents().size(); i++) {
+//                System.out.println(sdao.getAllStudents().get(i));
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }//main
 }//class
