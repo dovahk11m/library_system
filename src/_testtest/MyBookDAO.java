@@ -85,39 +85,6 @@ public class MyBookDAO {
         return bookList;
     }
 
-//    //도서 반납
-//    public void returnBook(int bookID, int studentPK) throws SQLException {
-//        //borrows select (book_id, return_date)
-//        String sqlCheck = "select*from borrows where student_id = ? and book_id = ? and return_date is null";
-//
-//        try (Connection conn = DatabaseUtil.getConnection();
-//             PreparedStatement psmtCheck = conn.prepareStatement(sqlCheck)) {
-//
-//            psmtCheck.setInt(1, bookID);
-//            psmtCheck.setInt(2, studentPK);
-//
-//            ResultSet rsCheck = psmtCheck.executeQuery();
-//
-//            if (rsCheck.next()) {
-//
-//                //borrows update (return_date)
-//                String sqlBorrows = "update borrows set return_date = current_date " +
-//                        " where student_id = " + studentPK +
-//                        " and book_id = " + bookID + " and return_date is null ";
-//                //books update (available)
-//                String sqlBooks = "update books set available = 1 where id = "+bookID;
-//
-//                try (PreparedStatement psmtBorrows = conn.prepareStatement(sqlBorrows);
-//                     PreparedStatement psmtBooks = conn.prepareStatement(sqlBooks)){
-//
-//                    psmtBorrows.executeUpdate();
-//                    psmtBooks.executeUpdate();
-//                }//try
-//            }//if
-//        }//try
-//    }//returnBook
-
-
     public static void main(String[] args) {
 
         MyBookDAO mbd = new MyBookDAO();

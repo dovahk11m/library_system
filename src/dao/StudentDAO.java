@@ -76,13 +76,13 @@ public class StudentDAO {
 
                 return studentDTO;
             }
-        }//authenticateStudent
+        }//try-catch
 
         //정확한 학번 입력시 Student 객체 생성 리턴
 
         //잘못된 학번 입력시 null 반환
         return null;
-    }//auth..
+    }//
 
     public static void main(String[] args) {
 

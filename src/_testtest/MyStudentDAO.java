@@ -4,9 +4,13 @@ import dto.Book;
 import dto.Student;
 import util.DatabaseUtil;
 
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyStudentDAO {
 
@@ -24,6 +28,21 @@ public class MyStudentDAO {
             psmt.executeUpdate();
         }//try
     }//addStud
+
+    //모든 학생 조회
+    public List<Student> getAllStud() throws SQLException {
+        List<Student> studentList = new ArrayList<>();
+
+        String sql = "select*form students";
+
+        try (Connection connection = DatabaseUtil.getConnection();
+        PreparedStatement psmt = connection.prepareStatement(sql)) {
+
+            ResultSet rs = psmt.executeQuery(sql);
+
+        }
+        return studentList;
+    }
 
 
     public static void main(String[] args) {
