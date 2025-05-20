@@ -77,6 +77,7 @@ public class BorrowDAO {
     //도서 반납
     public void returnBook(int bookID, int studentPK) throws SQLException {
 
+        //finally 자원해제를 위해 try문 외부에 변수 선언했다.
         Connection conn = null;
 
         try {
