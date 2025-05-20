@@ -1,8 +1,6 @@
 package dao;
-
 import dto.Borrow;
 import util.DatabaseUtil;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,8 +16,7 @@ public class BorrowDAO {
         //대출 가능여부 확인 select from books
         String sqlSelect = "select*from books where id = ? ";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement psmtSelect = conn.prepareStatement(sqlSelect)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement psmtSelect = conn.prepareStatement(sqlSelect)) {
 
             psmtSelect.setInt(1, bookID);
 
@@ -29,14 +26,12 @@ public class BorrowDAO {
             if (rsSelect.next() && rsSelect.getBoolean("available")) {
 
                 //대출 입력 insert into borrows
-                String sqlInsert = "insert into borrows (student_id, book_id, borrow_date) " +
-                        "values (?, ?, current_date) ";
+                String sqlInsert = "insert into borrows (student_id, book_id, borrow_date) " + "values (?, ?, current_date) ";
                 //대출 완료 update books where available
                 String sqlUpdate = "update books set available = false where id = ? ";
 
 
-                try (PreparedStatement borrowStmt = conn.prepareStatement(sqlInsert);
-                     PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate)) {
+                try (PreparedStatement borrowStmt = conn.prepareStatement(sqlInsert); PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate)) {
 
                     borrowStmt.setInt(1, studentPK);
                     borrowStmt.setInt(2, bookID);
@@ -59,8 +54,7 @@ public class BorrowDAO {
         List<Borrow> borrowList = new ArrayList<>();
         String sql = "select*from borrows where return_date is null";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement psmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement psmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = psmt.executeQuery();
 
@@ -82,35 +76,74 @@ public class BorrowDAO {
 
     //도서 반납
     public void returnBook(int bookID, int studentPK) throws SQLException {
-        //borrows select (book_id, return_date)
-        String sqlCheck = "select*from borrows where student_id = ? and book_id = ? and return_date is null";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement psmtCheck = conn.prepareStatement(sqlCheck)) {
+        Connection conn = null;
 
-            psmtCheck.setInt(1, bookID);
-            psmtCheck.setInt(2, studentPK);
+        try {
+            conn = DatabaseUtil.getConnection();
 
-            ResultSet rsCheck = psmtCheck.executeQuery();
+            //트랜잭션
+            conn.setAutoCommit(false); //자동저장을 막겠다는 뜻
 
-            if (rsCheck.next()) {
+            //이 쿼리의 결과집합에서 필요한 것은 borrows의 pk값(id) 뿐이다.
+            int borrowId = 0;
+            String checkSql = "select id from borrows " + " where book_id = ? " + " and student_id = ? " + " and return_date is null ";
 
-                //borrows update (return_date)
-                String sqlBorrows = "update borrows set return_date = current_date " +
-                        " where student_id = " + studentPK +
-                        " and book_id = " + bookID + " and return_date is null ";
-                //books update (available)
-                String sqlBooks = "update books set available = 1 where id = "+bookID;
+            //1.반납하려는 책을 특정 book_id
 
-                try (PreparedStatement psmtBorrows = conn.prepareStatement(sqlBorrows);
-                     PreparedStatement psmtBooks = conn.prepareStatement(sqlBooks)){
+            //2.같은 책을 빌린 다른 고객과 구분 student_id
 
-                    psmtBorrows.executeUpdate();
-                    psmtBooks.executeUpdate();
-                }//try
-            }//if
-        }//try
+            //3.같은 고객의 과거 이력과 구분 return_date
 
+            try (PreparedStatement checkPsmt = conn.prepareStatement(checkSql)) {
+
+                checkPsmt.setInt(1, bookID);
+                checkPsmt.setInt(2, studentPK);
+                checkPsmt.executeQuery();
+
+                ResultSet rs = checkPsmt.executeQuery();
+
+                if (!rs.next()) {
+                    throw new SQLException("문의하신 대출기록이 존재하지 않거나 " + "이미 반납 처리 됐습니다.");
+                }
+                //borrows 테이블의 pk 특정
+                borrowId = rs.getInt("id");
+            }
+
+            String sqlBorrow = "update borrows set return_date = ? where id = ? ";
+            String sqlBook = "update books set available = true where id = ? ";
+
+            try (PreparedStatement borrowPsmt = conn.prepareStatement(sqlBorrow); PreparedStatement bookPsmt = conn.prepareStatement(sqlBook)) {
+
+                //borrow 설정
+                borrowPsmt.setInt(1, borrowId);
+                borrowPsmt.executeUpdate();
+
+                //book 설정
+                bookPsmt.setInt(1, bookID);
+                bookPsmt.executeUpdate();
+            }
+            //트랜잭션 완료, 커밋
+            conn.commit();
+
+        } catch (SQLException e) {
+
+            //오류 발생시 롤백 처리
+            if (conn != null) {
+                conn.rollback();
+            }
+            System.err.println("오류발생, rollback 처리 됐습니다");
+
+        } finally {
+            if (conn != null) {
+
+                //오토커밋 복구
+                conn.setAutoCommit(true);
+
+                //자원 해제 (메모리 누수 방지)
+                conn.close();
+            }
+        }
 
     }//returnBook
 
@@ -137,7 +170,7 @@ public class BorrowDAO {
 //        }
 
         try {
-            borrowDAO.returnBook(3,1);
+            borrowDAO.returnBook(3, 1);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
